@@ -1,0 +1,105 @@
+TKT21026 Network Programming
+============================
+
+Exercise 1  (due on January 24, 2024):
+
+1. Write a C program that
+
+   a) uses system calls to get the process ID (pid), parent pid (ppid), 
+      process group ID (pgid), and user ID (uid) of a running process
+      and then prints this information, and 
+
+   b) prints its environment variables. You may use the stdio libraly
+      functions for printing.
+
+   c) Write a piece of code that measures the elapsed time for executing
+      a piece of code (see man gettimeofday). Apply your code to measure
+
+      i) the elapsed time it takes to execute the system calls in task 
+         1 a) (exclude the time needed to print the values), and 
+
+      ii) the elapsed time for printing the environment variables in 
+          task 1 b). 
+
+      Is there any notable difference in the elapsed times between 
+      i and ii?
+      
+
+2. Write a C program "doubler" that reads text lines and writes each
+   line twice to standard output. Each duplicated line is written
+   immediately after the original line. The pathname of the file to be
+   read is given as a command line argument. If the pathname is not
+   given, the program reads from standard input. Write two versions of
+   the program:
+
+   a) a version that uses stdio library functions for file I/O 
+      (opening, reading from and writing to a file) and
+   b) a version that uses corresponding system calls.
+
+   You can make an assumption that the lines in the file are not
+   extremely long, but limited to some predefined size, i.e., the
+   program needs not to work perfectly with overlenght lines.
+
+   Test your programs such that they work properly also when reading
+   from a file.
+
+
+3. a) Write a C program, which copies the content of a file to standard
+      output, that is, it reads from a file (pathname is given as a
+      command line argument) and writes to a terminal (STDOUT_FILENO).
+      Use system calls (open, read, write, ...) for I/O. The program
+      should catch SIGINT signal (use signal() system call). When SIGINT
+      signal is caught, the program writes an appropriate message to
+      the terminal (STDERR_FILENO) informing about the arrival of the
+      signal, and exits.
+
+      Note: SIGINT signal is sent to the process when ctrl-C is pressed
+      on the terminal keaboard. Test your program with large enough text
+      file or, if necessary, slow down the execution of the process when
+      testing it, so that it allows you enough time to press ctrl-C when
+      the program is still running. You may use sleep() or usleep() for
+      slowing down the execution of the program (see man 3 sleep and man
+      3 usleep).
+
+   b) Read the man page for the sigaction() call and find out the 
+      meaning of each argument of the call. Also modify the program of
+      the task 3 a) to use sigaction() instead of signal().
+
+
+4. What information within the process context a child process
+   'inherits' from its parent in fork() system call, i.e., what is
+   copied to the child process? All possible details are not needed, but
+   make sure that particularly any issues related to the use of files,
+   pipes and other special devices becomes clear.
+
+
+5. a) How do the variants of the exec system call differ from each
+      other? (that is, execve() and its front ends: execl(), execlp(),
+      execle(), etc.)
+
+   b) What information in process context is changed (or remains the
+      same) when a process calls exec() system call?
+   
+
+6. When testing programs that use fork() to create new process, problems
+   may occur if there are bugs in the program that may lead in creating
+   a huge number of child processes, for example. Or sometimes processes
+   tend to remain running there mistakenly.
+
+   What Unix shell commands (or series of Unix commands) you need in
+   order to accomplish the following on a Unix system?
+
+   a) Find out all your processes that are currently running.
+
+   b) Get information on a process (or processes) running a certain program.
+
+   c) Kill 1) a certain process, 2) kill all your processes running
+      a certain program, or 3) kill all your processes.
+
+Please comment your code and test it!
+
+Note: It would be very useful to make your code modular as it will
+allow you to reuse some pieces of your code in the upcoming
+exercises. For example, in task 2 b) you may implement a function 
+doubler(int fd_in, int fd_out) that reads lines from file descriptor
+fd_in and writes the duplicated lines to file descriptor fd_out.
