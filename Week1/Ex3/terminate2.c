@@ -5,11 +5,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+// Function, that is called, when a signal is detected
 void signalhandler(int a) { 
   printf("\nCaught signal to terminate, %d\n", a);
   exit(1);
 };
 
+// Same as in part a
 void copy_file(char* filapath) {
   char *line = malloc(124);
   int fp = open(filapath, O_RDONLY);
@@ -22,13 +24,13 @@ void copy_file(char* filapath) {
 
 int main(int argc, char *argv[], char *envp[]) {
   if (argc == 2) {
-    struct sigaction handler;
+    struct sigaction handler; // Struct for sigaction
 
-    handler.sa_handler = &signalhandler;
-    sigemptyset(&handler.sa_mask);
-    handler.sa_flags = 0;
+    handler.sa_handler = &signalhandler; // Change the handler to our own function
+    sigemptyset(&handler.sa_mask); // Set signalset to empty
+    handler.sa_flags = 0; // No additional behavior wanted for sigaction
 
-    sigaction(SIGINT, &handler, NULL);
+    sigaction(SIGINT, &handler, NULL); // Start sigaction to listen to keyboard interrupts
     copy_file(argv[1]);
   }
   else {
