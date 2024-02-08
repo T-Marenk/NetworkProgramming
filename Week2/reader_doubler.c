@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -20,12 +21,23 @@ ssize_t getlin(char* line, int fp) {
   return -1; // Nothing has been read
 }
 
+void reader(int fd_in, int fd_out) {
+  char *line = malloc(124); // Allocate space for reading lines
+  ssize_t nread;
+
+  // Loop, while there are lines left in the given file
+  while ((nread = getlin(line, fd_in)) != -1) {
+    write(fd_out, line, nread); // Copy the lines to the pipe
+  }
+
+  close(fd_out);
+}
+
 // Function, that doubles each row
 void doubler(int fd_in, int fd_out) {
   char *line = malloc(124); // Allocate space for reading lines
   ssize_t nread;
 
-  // Loop, while there are lines left in the given file
   while ((nread = getlin(line, fd_in)) != -1) {
     write(fd_out, line, nread); // Print the lines to standard output
     write(fd_out, line, nread);
@@ -36,12 +48,20 @@ void doubler(int fd_in, int fd_out) {
 }
 
 int main(int argc, char *argv[], char *envp[]) {
-  if (argc == 2) {
-    int fd = open(argv[1], O_RDONLY); // Open the file
-    doubler(fd, STDOUT_FILENO);
+  int childpid, pipe1[2];
+  if (pipe(pipe1) < 0) {
+    write(STDOUT_FILENO, "Error while creating pipe", 25);
+    exit(1);
   }
-  else {
-    doubler(STDIN_FILENO, STDOUT_FILENO);
+  if ((childpid = fork()) < 0) {
+    exit(1);
+  } else if (childpid > 0) {
+    close(pipe1[0]);
+    reader(STDIN_FILENO, pipe1[1]);
+    wait(NULL);
+  } else {
+    close(pipe1[1]);
+    doubler(pipe1[0], STDOUT_FILENO);
   }
   
   return 0;
