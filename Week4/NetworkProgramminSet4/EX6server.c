@@ -1,6 +1,6 @@
 #include <bits/types/struct_timeval.h>
 #include <stdlib.h>
-#include <string.h>
+#include <strings.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define SERV_TCP_PORT 51012
+#define SERV_TCP_PORT 51069
 
 void my_err(char *sptr)
 {
@@ -19,37 +19,20 @@ void my_err(char *sptr)
 }
 
 // Receive data from a client with this function
-void receiver(int fd_in, int maxr) {
+void receiver(int fd_in, int fd_out) {
   // Assign needed variables
   struct timeval start, end;
-  char *line = malloc(maxr); // Allocate space for reading lines
-  unsigned long long  recv = 0;
+  char *line = malloc(124); // Allocate space for reading lines
   ssize_t nread;
 
-  // Read the first bytes and then start the clock
-  nread = read(fd_in, line, maxr);
-  recv += nread;
-  gettimeofday(&start, NULL);
-
   // Read from input while there is still something to be read and calculate the amount of bytes read
-  while ((nread = read(fd_in, line, maxr)) > 0) recv += nread;
-  gettimeofday(&end, NULL); // Stop the timer
-
-  long elapsed = (end.tv_sec - start.tv_sec)*1000000 + end.tv_usec - start.tv_usec;
-
-  printf("Time needed to read the data %ld us\n", elapsed);
-  printf("Received %llu bytes\n", recv);
-  printf("Throughput is %f bytes/s", (double)recv/((double)elapsed/1000000));
+  while ((nread = read(fd_in, line, 124)) > 0) write(fd_out, line, nread);
 
   free(line); // Free the allocated space
   close(fd_in); // Close the socket (child)
 }
 
 int main(int argc, char *argv[], char *envp[]) {
-  if (argc < 2) {
-    my_err("Give max bytes to read");
-  }
-  int maxr = atoi(argv[1]); // Max bytes that can be read with a single read() function
   int listenfd, newsockfd, clilen, childpid;
   struct sockaddr_in cli_addr, serv_addr;
 
@@ -78,7 +61,7 @@ int main(int argc, char *argv[], char *envp[]) {
     if ( (childpid = fork()) < 0)
       my_err("Failed to fork");
     else if (childpid == 0) { // Create child process to handle the data receiving
-      receiver(newsockfd, maxr);
+      receiver(newsockfd, newsockfd);
       exit(0);
     }
     close(newsockfd); // Close the client socket for the parent
